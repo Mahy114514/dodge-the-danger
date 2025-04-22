@@ -1,17 +1,43 @@
 info.onCountdownEnd(function () {
-    game.gameOver(true)
+    music.stopAllSounds()
+    if (info.score() <= 15) {
+        game.gameOver(false)
+    } else {
+        game.gameOver(true)
+    }
 })
 info.onLifeZero(function () {
+    music.stopAllSounds()
+    game.setGameOverPlayable(false, music.melodyPlayable(music.jumpDown), false)
+    game.setGameOverMessage(false, "Lost!")
+    game.setGameOverEffect(false, effects.dissolve)
     game.gameOver(false)
 })
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSprite) {
+    sprites.destroy(otherSprite, effects.confetti, 100)
+    info.changeScoreBy(1)
+    mySprite.sayText("OK", 200, false)
+    mySprite.startEffect(effects.warmRadial, 200)
+    music.play(music.createSoundEffect(WaveShape.Sine, 200, 600, 255, 0, 150, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
+})
+info.onScore(20, function () {
+    music.stopAllSounds()
+    game.setGameOverPlayable(true, music.melodyPlayable(music.jumpUp), false)
+    game.setGameOverEffect(true, effects.smiles)
+    game.setGameOverMessage(true, "Excellent!")
+    game.gameOver(true)
+})
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSprite) {
-    sprites.destroy(otherSprite, effects.spray, 100)
+    sprites.destroy(otherSprite, effects.disintegrate, 100)
     info.changeLifeBy(-1)
-    mySprite.sayText("NO")
-    mySprite.startEffect(effects.ashes)
+    mySprite.sayText("NO", 200, false)
+    mySprite.startEffect(effects.ashes, 200)
+    scene.cameraShake(4, 200)
     music.play(music.createSoundEffect(WaveShape.Noise, 3300, 1400, 255, 0, 150, SoundExpressionEffect.Warble, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
 })
-let meal: Sprite = null
+let egg: Sprite = null
+let heart: Sprite = null
+let number = 0
 let mySprite: Sprite = null
 scene.setBackgroundImage(img`
     9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999966666699969999999999999999999999999999999999999999999999999999
@@ -165,31 +191,57 @@ controller.moveSprite(mySprite, 100, 100)
 mySprite.setStayInScreen(true)
 mySprite.setPosition(75, 100)
 info.setLife(3)
+info.setScore(0)
 info.startCountdown(60)
-game.onUpdateInterval(100, function () {
-    meal = sprites.create(img`
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . f f f . f f f . . . . 
-        . . . . f 3 3 3 f 3 3 3 f . . . 
-        . . . . f 3 3 3 3 3 1 3 f . . . 
-        . . . . f 3 3 3 3 3 3 3 f . . . 
-        . . . . . f 3 b b b 3 f . . . . 
-        . . . . . f f b b b f f . . . . 
-        . . . . . . f f b f f . . . . . 
-        . . . . . . . f f f . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        `, SpriteKind.Enemy)
-    meal.setPosition(randint(20, scene.screenWidth()), 0)
-    meal.setVelocity(randint(-50, 50), randint(30, 50))
-})
+music.play(music.stringPlayable("G B A G C5 B A B ", 120), music.PlaybackMode.LoopingInBackground)
 game.onUpdateInterval(20000, function () {
     if (info.life() < 2) {
         info.changeLifeBy(1)
+    }
+})
+game.onUpdateInterval(200, function () {
+    number = randint(1, 9)
+    if (number <= 3) {
+        heart = sprites.create(img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . f f f . f f f . . . . 
+            . . . . f 3 3 3 f 3 3 3 f . . . 
+            . . . . f 3 3 3 3 3 1 3 f . . . 
+            . . . . f 3 3 3 3 3 3 3 f . . . 
+            . . . . . f 3 b b b 3 f . . . . 
+            . . . . . f f b b b f f . . . . 
+            . . . . . . f f b f f . . . . . 
+            . . . . . . . f f f . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `, SpriteKind.Enemy)
+        heart.setPosition(randint(20, scene.screenWidth()), randint(0, 10))
+        heart.setVelocity(randint(-50, 50), randint(30, 50))
+    } else {
+        egg = sprites.create(img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . c b a c . . . . . . 
+            . . . . c c b c f a c . . . . . 
+            . . . . a f b b b a c . . . . . 
+            . . . . a f f b a f c c . . . . 
+            . . . . c b b a f f c . . . . . 
+            . . . . . b b a f a . . . . . . 
+            . . . . . . c b b . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `, SpriteKind.Food)
+        egg.setPosition(randint(20, scene.screenWidth()), randint(0, 10))
+        egg.setVelocity(randint(-50, 50), randint(30, 50))
     }
 })

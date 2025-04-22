@@ -1,5 +1,5 @@
 {
-    "name": "Dodge the danger",
+    "name": "Hungry_Skull",
     "description": "",
     "dependencies": {
         "device": "*"
@@ -14,7 +14,7 @@
         "test.ts"
     ],
     "targetVersions": {
-        "target": "2.0.48",
+        "target": "2.0.53",
         "targetId": "arcade"
     },
     "supportedTargets": [
